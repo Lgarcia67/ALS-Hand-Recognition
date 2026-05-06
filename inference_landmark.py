@@ -1,21 +1,3 @@
-"""
-inference_landmark.py
----------------------
-Live ASL recognition using MediaPipe hand landmarks + trained MLP.
-Zero background sensitivity — classifies hand geometry, not pixels.
-
-Usage:
-  python inference_landmark.py
-
-Requirements:
-  landmark_asl_best.pth   (from train_landmark_model.py)
-  label_encoder.npy       (from train_landmark_model.py)
-
-Controls:
-  q  — quit
-  s  — toggle landmark skeleton overlay
-  c  — toggle confidence bar
-"""
 
 import os
 import cv2 as cv
@@ -24,17 +6,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import collections
+from collections import Counter
 import time
 
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-# ── Config ────────────────────────────────────────────────────────────────────
+#  hyperparams 
 MODEL_PATH    = "landmark_asl_best.pth"
 ENCODER_PATH  = "label_encoder.npy"
 CONFIDENCE_TH = 0.55        # minimum confidence to display a prediction
-SMOOTH_WINDOW = 7           # majority-vote over last N frames to reduce flicker
+SMOOTH_WINDOW = 7           
 
-# ── Model ─────────────────────────────────────────────────────────────────────
+# model 
 class LandmarkASL(nn.Module):
     def __init__(self, num_classes=26):
         super().__init__()
@@ -61,7 +44,6 @@ class LandmarkASL(nn.Module):
         return self.net(x)
 
 
-# ── Normalisation (must match collect_landmarks.py) ───────────────────────────
 def normalize_landmarks(landmarks, w, h):
     pts    = np.array([[lm.x * w, lm.y * h, lm.z * w] for lm in landmarks],
                       dtype=np.float32)
@@ -72,7 +54,7 @@ def normalize_landmarks(landmarks, w, h):
     return pts.flatten()
 
 
-# ── Smoothing ─────────────────────────────────────────────────────────────────
+#Smoothing 
 class PredictionSmoother:
     def __init__(self, window=7):
         self.history = collections.deque(maxlen=window)
@@ -84,7 +66,6 @@ class PredictionSmoother:
         if not self.history:
             return None, 0.0
         # majority vote
-        from collections import Counter
         votes  = Counter(l for l, _ in self.history)
         winner = votes.most_common(1)[0][0]
         avg_conf = np.mean([c for l, c in self.history if l == winner])
@@ -138,13 +119,7 @@ def draw_prediction_badge(frame, label, confidence, x, y):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    # load model
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(
-            f"Model not found: '{MODEL_PATH}'. Run train_landmark_model.py first.")
-    if not os.path.exists(ENCODER_PATH):
-        raise FileNotFoundError(
-            f"Encoder not found: '{ENCODER_PATH}'. Run train_landmark_model.py first.")
+    # load model        
 
     class_names = np.load(ENCODER_PATH, allow_pickle=True).tolist()
     num_classes  = len(class_names)
@@ -180,9 +155,10 @@ def main():
         if not ok:
             break
 
-        t0      = time.time()
-        img     = cv.flip(frame, 1)
-        h, w, _ = img.shape
+        t0 = time.time()
+        img = cv.flip(frame, 1)
+        h = img.shape[0]
+        w = img.shape[1]
         img_rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         results = hands.process(img_rgb)
 
@@ -237,17 +213,7 @@ def main():
             smoother.history.clear()
             cv.putText(img, "No hand detected", (w // 2 - 120, h // 2),
                        cv.FONT_HERSHEY_SIMPLEX, 0.9, (80, 80, 80), 2)
-
-        # FPS counter
-        fps_times.append(time.time() - t0)
-        fps = 1.0 / (sum(fps_times) / len(fps_times) + 1e-6)
-        cv.putText(img, f"FPS: {fps:.0f}", (10, h - 10),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (100, 100, 100), 1)
-
-        # mode hints
-        cv.putText(img, f"[s] skeleton  [c] bars  [q] quit",
-                   (10, h - 28), cv.FONT_HERSHEY_SIMPLEX, 0.4, (80, 80, 80), 1)
-
+        
         cv.imshow("ASL Landmark Recognition", img)
         key = cv.waitKey(1) & 0xFF
 
