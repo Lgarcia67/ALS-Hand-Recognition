@@ -1,19 +1,3 @@
-"""
-collect_landmarks.py
---------------------
-Collects hand landmark data from your webcam for each ASL letter.
-
-HOW TO USE:
-  python collect_landmarks.py
-
-Controls:
-  - Press the LETTER KEY (a-z) to start recording that letter
-  - Hold your hand sign steady while the progress bar fills
-  - Press 'u' to undo the last recorded sample
-  - Press 'q' to quit and save
-  - Recordings are auto-saved to  landmark_data.csv
-"""
-
 import os
 import cv2 as cv
 import mediapipe as mp
@@ -23,13 +7,12 @@ import time
 
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-# ── Config ────────────────────────────────────────────────────────────────────
-SAMPLES_PER_CLASS   = 150        # how many samples to collect per letter
+SAMPLES_PER_CLASS   = 150        
 OUTPUT_CSV          = "landmark_data.csv"
 MIN_DETECTION_CONF  = 0.7
 MIN_TRACKING_CONF   = 0.6
 
-# ── MediaPipe ─────────────────────────────────────────────────────────────────
+#mediapipe setup
 mp_hands = mp.solutions.hands
 mp_draw  = mp.solutions.drawing_utils
 hands    = mp_hands.Hands(
@@ -206,16 +189,6 @@ def main():
 
         if key == ord('q'):
             break
-
-        elif key == ord('u'):
-            # undo last sample
-            if session_rows:
-                removed = session_rows.pop()
-                label   = removed[-1].upper()
-                if label in counts and counts[label] > 0:
-                    counts[label] -= 1
-                save_all(OUTPUT_CSV, session_rows)
-                status_msg = f"Undid last '{label}' sample"
 
         elif key != 255:
             ch = chr(key).upper()
