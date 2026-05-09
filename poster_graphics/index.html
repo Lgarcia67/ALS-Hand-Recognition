@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASL Recognition Poster</title>
+    <style>
+        :root {
+            --utep-blue: #041E42;
+            --utep-blue-dark: #02122b;
+            --utep-orange: #FF8200;
+            --text-main: #FFFFFF;
+            --text-muted: #E0E4E8;
+            --box-bg: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            /* Centers the poster and prevents all screen scrolling */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; 
+        }
+
+        /* Enforces strict 36x24 (3:2) ratio while dynamically fitting screen height */
+        .poster-container {
+            aspect-ratio: 3 / 2;
+            height: 96vh;
+            max-width: 96vw; 
+            background-color: var(--utep-blue);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 2vh 2vw;
+            background-color: var(--utep-blue-dark);
+            border-bottom: 6px solid var(--utep-orange);
+        }
+
+        h1 {
+            font-size: 3.5vh;
+            margin: 0 0 1vh 0;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .authors {
+            font-size: 2vh;
+            color: var(--utep-orange);
+            font-weight: 600;
+            margin-bottom: 0.5vh;
+        }
+
+        .institution {
+            font-size: 1.6vh;
+            color: var(--text-muted);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2vh;
+            padding: 2vh;
+            flex-grow: 1;
+            min-height: 0; /* allows flex children to shrink */
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: 2vh;
+            min-height: 0;
+        }
+
+        /* Cohesive box styling instead of basic borders */
+        .section {
+            background-color: var(--box-bg);
+            border-left: 4px solid var(--utep-orange);
+            border-radius: 0 6px 6px 0;
+            padding: 1.5vh 2vh;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .section h2 {
+            color: var(--utep-orange);
+            border-bottom: 1px solid rgba(255, 130, 0, 0.3);
+            padding-bottom: 0.8vh;
+            margin-top: 0;
+            margin-bottom: 1.2vh;
+            font-size: 2.2vh;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section p, .section ul, .section li {
+            font-size: 1.6vh; 
+            line-height: 1.45;
+            color: var(--text-muted);
+            margin-top: 0;
+            margin-bottom: 0.8vh;
+        }
+        
+        .section ul {
+            padding-left: 2.5vh;
+        }
+
+        /* Strict image constraints to prevent layout breaking */
+        img {
+            width: 100%;
+            max-height: 25vh; /* prevents images from pushing content off-screen */
+            object-fit: contain;
+            border-radius: 4px;
+            margin-top: auto;
+            margin-bottom: auto;
+            background-color: #0b0f19; /* matches your plot backgrounds */
+        }
+
+        .highlight {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .references li {
+            font-size: 1.2vh;
+            margin-bottom: 0.5vh;
+        }
+        
+        .flex-grow {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="poster-container">
+    <header>
+        <h1>Live Webcam ASL Recognition: Overcoming the Domain Gap</h1>
+        <div class="authors">Luis Damian Garcia</div>
+        <div class="institution">Department of Computer Science, University of Texas at El Paso</div>
+    </header>
+
+    <div class="grid-container">
+        <div class="col">
+            <div class="section">
+                <h2>Introduction & Motivation</h2>
+                <ul>
+                    <li><strong>Problem:</strong> Standard ASL models trained on curated datasets (like Kaggle) often fail completely when deployed to live webcam environments.</li>
+                    <li><strong>Goal:</strong> Investigate and quantify this "domain gap" by testing two fundamentally different architectures in a real-world setting.</li>
+                    <li><strong>Motivation:</strong> To build an edge-capable, robust ASL translator that works for diverse users regardless of background noise, lighting, or camera quality.</li>
+                </ul>
+            </div>
+
+            <div class="section flex-grow">
+                <h2>Methodology</h2>
+                <ul>
+                    <li><strong>Model A (ResNet-50):</strong> Convolutional Neural Network utilizing Transfer Learning. Trained directly on static dataset images (pixels).</li>
+                    <li><strong>Model B (Landmark MLP):</strong> A lightweight Multi-Layer Perceptron trained exclusively on 3D hand coordinates.</li>
+                    <li><strong>Tools Used:</strong> MediaPipe for landmark extraction, PyTorch for model building.</li>
+                    <li><strong>Design Choice:</strong> Designed a geometric normalization pipeline to make Model B mathematically invariant to screen position and scale.</li>
+                </ul>
+                <img src="4_landmark_equation.png" alt="Landmark Feature Extraction">
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="section flex-grow">
+                <h2>Results</h2>
+                <ul>
+                    <li><strong>The Collapse:</strong> ResNet-50 achieved 97.4% on validation data but suffered an <span class="highlight">80.7% drop</span> in the live webcam test.</li>
+                    <li><strong>The Solution:</strong> The Landmark MLP maintained a robust <strong>96.2% live accuracy</strong>.</li>
+                </ul>
+                <img src="1_headline_comparison.png" alt="Benchmark vs Live Webcam Performance">
+                <ul style="margin-top: 1.5vh;">
+                    <li><strong>Per-Letter Analysis:</strong> ResNet-50 exhibited widespread confusion due to background discrepancies. The MLP correctly identified almost all static letters.</li>
+                </ul>
+                <img src="2_per_letter_accuracy.png" alt="Per Letter Accuracy">
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="section">
+                <h2>Conclusion</h2>
+                <ul>
+                    <li>Standard CNNs overfit to dataset-specific pixel data (lighting, backgrounds), creating a severe domain gap.</li>
+                    <li>Stripping away pixel data and using normalized geometric landmarks effectively solves the domain gap for static sign language recognition.</li>
+                    <li>The resulting MLP is highly efficient (< 1MB) and capable of sub-millisecond inference.</li>
+                </ul>
+            </div>
+
+            <div class="section flex-grow">
+                <h2>Future Work</h2>
+                <ul>
+                    <li><strong>Addressing Dynamic Signs:</strong> The MLP currently fails on letters 'Z' and 'J' because they require motion context.</li>
+                    <li><strong>Next Steps:</strong> Transition from static frame analysis to sequence modeling (e.g., LSTMs or Transformers) to track landmark paths over time.</li>
+                </ul>
+                <img src="5_key_insights.png" alt="Key Insights">
+            </div>
+
+            <div class="section">
+                <h2>References</h2>
+                <ul class="references">
+                    <li>[1] He, K., et al. "Deep Residual Learning for Image Recognition" (CVPR 2016).</li>
+                    <li>[2] Lugaresi, C., et al. "MediaPipe: A Framework for Building Perception Pipelines."</li>
+                    <li>[3] Kaggle ASL Alphabet Dataset. [Insert specific author/URL here]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

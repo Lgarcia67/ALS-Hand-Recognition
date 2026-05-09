@@ -146,7 +146,6 @@ def plot_confusion(labels, preds, class_names, path):
     print(f"Saved confusion matrix → {path}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     if not os.path.exists(CSV_PATH):
         raise FileNotFoundError(
